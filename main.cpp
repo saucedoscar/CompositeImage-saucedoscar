@@ -5,29 +5,43 @@
 
 using namespace std;
 
-void askForImages();
+void askForFirstImage();
 void averagePixels();
 void restOfImages();
 void addImg(vector<vector <Pixel> >);
-void resizeVector();
+void resizeCube();
+
 int height;
 int width;
 int imagesAdded = 0;
 
-vector < vector< vector< Pixel> > > composite;
+vector < vector< vector< Pixel> > > cube;
+vector <vector<Pixel> > finalImage;
 int imgCount = 0;
 
 int main()
 {
-    askForImages();
-    restOfImages();
+    askForFirstImage();
+    if(imgCount > 0)
+    {
+        restOfImages();
+    }
+    else
+    {
+        askForFirstImage();
+    }
+    if(imgCount > 0 )
+    {
     averagePixels();
-   
+    }
+    else{
+    cout<<"I am sorry I did not recieve more than 2 valid images"<<endl;
+    }
 
     return 0;
 }
 //asks for the first image so that the computer could check if it is valid and then save the height and width of the image into constant varibales.
-void askForImages() //asks the user for the image to compose with. 
+void askForFirstImage() //asks the user for the image to compose with. 
 {
        //ask for the first image
         Bitmap image;
@@ -36,16 +50,19 @@ void askForImages() //asks the user for the image to compose with.
         cout<<"Please give me your first image"<<endl;
         cin>>filename;
         image.open(filename);
+        cout<<endl;
         if(image.isImage())//checks if the first image is valid
         {
             bmp = image.toPixelMatrix();
             height = bmp.size();
             width = bmp[0].size();
             imgCount++;
-            composite.resize(height);
-            for(int r = 0; r < composite.size(); r ++)
+            cube.resize(height);
+            finalImage.resize(height);
+            for(int r = 0; r < cube.size(); r ++)
             {
-                composite[r].resize(width);
+                cube[r].resize(width);
+                finalImage[r].resize(width);
             }
             //action: save the height and width into constant-global variables.
             //increment count to make sure they don't go over ten images
@@ -55,24 +72,22 @@ void askForImages() //asks the user for the image to compose with.
             //tell them the image is invalid 
             cout<<"I am sorry, that file is invalid."<<endl;
         }
+        filename.clear();
 }
 //asks for more images and calls the fucntion addImg when it as a valid image basing it off the size of the image.
 void restOfImages()
 {
     Bitmap image;
     bool moreImages = true;
-    bool loop;
     string response;
     vector<vector<Pixel > > img;
-    cout<<"Please give me no more than 9 more files. If you want to less than 9 files type done."<<endl;
         do{
-            cout<<"Please give me no more than 9 more files. If you want less than 9 files type done. Make sure you give me at least one more file."<<endl;
+            cout<<"Please give me no more than 9 more files or type 'DONE'. Make sure you give me at least one more file."<<endl;
             cout<<"please type the filename"<<endl;
             cin>>response;
-            if(response == "Done" || response == "done")
+            if(response == "Done" || response == "done" || response == "DONE")
             {                                   
-                moreImages = false;
-                loop = false;
+                break;
             }
             image.open(response);
             if(image.isImage())//if the same size and a valid image then call the funciton
@@ -80,10 +95,17 @@ void restOfImages()
                 img = image.toPixelMatrix();
                 if(img.size() == height && img[0].size() == width)
                 {
-                    imgCount++;
-                    resizeVector();
-                    addImg(img);
-
+                    if(imgCount < 11)
+                    {
+                        imgCount++;
+                        resizeCube();
+                        addImg(img);
+                    }
+                    else
+                    {
+                        cout<<"You have reached max images. I will now make the final image."<<endl;
+                        moreImages = false;
+                    }
                 }
                 else
                 {
@@ -94,24 +116,19 @@ void restOfImages()
             else
             {
                 moreImages = false;
-                loop = false;
             }
             response.clear();
           }while(moreImages == true && imgCount < 11);
-          if(imgCount == 10)
-          {
-                cout<<"You have reached max images. I will no make the composite image."<<endl;
-          }
 }
 //adds a pixel matrix to an array of bitmaps
 
-void resizeVector()
+void resizeCube()
 {
     for(int r = 0; r < height; r++)
     {
         for(int c = 0; c < width; c++)
         {
-            composite[r][c].resize(imgCount);
+            cube[r][c].resize(imgCount);
         }
     }
 }
@@ -122,7 +139,7 @@ void addImg(vector<vector<Pixel > > bmp)
     {
         for(int c = 0; c < width; c++)
         {
-            composite[r][c][imagesAdded] = bmp[r][c];   
+            cube[r][c][imagesAdded] = bmp[r][c];   
         }
     }
     imagesAdded++;
@@ -130,25 +147,50 @@ void addImg(vector<vector<Pixel > > bmp)
 //average pixels within the arrays using for loops
 void averagePixels()
 {
+        Bitmap image;
         int sumRed = 0;
         int sumGreen = 0;
         int sumBlue = 0;
-        int average; 
+        int averageRed = 0; 
+        int averageGreen = 0;
+        int averageBlue = 0;
         const int DEPTH = imgCount;
-        Pixel rgb;
+        Pixel rgb, rgb2;
         for(int r = 0; r < height; r++)
         {
             for(int c = 0; c < width; c++)
             {
-                for(int z; z < DEPTH; z++)
+                if(c == (cube.size()/2))
                 {
-                    //grab the rgb values of each 
-                    composite[r][c][z] = rgb;
-                    sumRed = sumRed + composite[r][c][z].red;
-                    sumGreen = sumGreen + composite[r][c][z].green;
-                    sumBlue = sumBlue + composite[r][c][z].blue;
+                    cout<<"finished 50%"<<endl;
                 }
-            }
+                    for(int z; z < DEPTH; z++)
+                    {
+                        sumRed = 0;
+                        sumGreen = 0;
+                        sumBlue = 0;
+                        averageRed = 0;
+                        averageGreen = 0;
+                        averageBlue = 0;
+                        //grab the rgb values of each 
+                        rgb = cube[r][c][z];
+                        sumRed = sumRed + rgb.red;
+                        sumGreen = sumGreen + rgb.green;
+                        sumBlue = sumBlue + rgb.blue;
+                    }
+                
+                averageRed = sumRed/imgCount;
+                averageGreen = sumGreen/imgCount;
+                averageBlue = sumBlue/imgCount;
+
+                rgb2 = finalImage[r][c];
+                rgb2.red = averageRed;
+                rgb2.green = averageGreen;
+                rgb.blue = averageBlue;
+                finalImage[r][c] = rgb2;
+            }                
         }
+        image.fromPixelMatrix(finalImage);
+        image.save("composite-saucedoscar.bmp");
 }
 
